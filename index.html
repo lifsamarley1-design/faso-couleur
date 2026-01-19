@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faso Couleur</title>
+<meta name="theme-color" content="#16a34a">
+<style>
+body{font-family:sans-serif;background:#f4f4f5;margin:0;padding:16px}
+header{display:flex;justify-content:space-between;gap:10px}
+button{padding:10px;border:none;border-radius:10px;background:#16a34a;color:#fff;font-weight:600}
+section{background:#fff;border-radius:14px;padding:16px;margin-top:16px}
+.color-box{height:80px;border-radius:10px;margin-top:10px}
+.palette{display:flex;gap:6px;margin-top:6px}
+.palette div{width:30px;height:30px;border-radius:6px}
+input{width:100%;padding:10px;margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<header>
+  <button onclick="show('mix')">🎨 Mélange</button>
+  <button onclick="show('target')">🎯 Couleur cible</button>
+</header>
+
+<section id="mix">
+  <h3>Mélange de couleurs</h3>
+  <input type="color" id="c1" value="#ff0000">
+  <input type="color" id="c2" value="#00ff00">
+  <input type="color" id="c3" value="#0000ff">
+  <button onclick="mix()">Mélanger</button>
+  <div id="mixResult" class="color-box"></div>
+  <p id="mixHex"></p>
+  <button onclick="savePalette()">💾 Sauvegarder palette</button>
+</section>
+
+<section id="target" class="hidden">
+  <h3>Couleur cible</h3>
+  <input type="color" id="targetColor" value="#ffaa00" oninput="findMix()">
+  <div id="targetResult"></div>
+</section>
+
+<section>
+  <h3>📁 Palettes sauvegardées</h3>
+  <div id="palettes"></div>
+</section>
+
+<script>
+function show(id){
+  document.getElementById('mix').classList.add('hidden');
+  document.getElementById('target').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function hexToRgb(h){
+  return [
+    parseInt(h.substr(1,2),16),
+    parseInt(h.substr(3,2),16),
+    parseInt(h.substr(5,2),16)
+  ];
+}
+
+function mix(){
+  const colors=['c1','c2','c3'].map(id=>hexToRgb(document.getElementById(id).value));
+  const r=Math.round(colors.reduce((a,c)=>a+c[0],0)/3);
+  const g=Math.round(colors.reduce((a,c)=>a+c[1],0)/3);
+  const b=Math.round(colors.reduce((a,c)=>a+c[2],0)/3);
+  const hex=`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  document.getElementById('mixResult').style.background=hex;
+  document.getElementById('mixHex').innerText='Résultat : '+hex;
+}
+
+function savePalette(){
+  const p=[c1.value,c2.value,c3.value];
+  const data=JSON.parse(localStorage.getItem('palettes')||'[]');
+  data.push(p);
+  localStorage.setItem('palettes',JSON.stringify(data));
+  loadPalettes();
+}
+
+function loadPalettes(){
+  const data=JSON.parse(localStorage.getItem('palettes')||'[]');
+  const div=document.getElementById('palettes');
+  div.innerHTML='';
+  data.forEach(p=>{
+    const row=document.createElement('div');
+    row.className='palette';
+    p.forEach(c=>{
+      const d=document.createElement('div');
+      d.style.background=c;
+      row.appendChild(d);
+    });
+    div.appendChild(row);
+  });
+}
+
+function findMix(){
+  const t=hexToRgb(targetColor.value);
+  document.getElementById('targetResult').innerHTML=
+    `Essayez : Rouge + Jaune<br>Couleur cible : ${targetColor.value}`;
+}
+
+mix();
+loadPalettes();
+</script>
+
+</body>
+</html>
